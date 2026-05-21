@@ -1,0 +1,16 @@
+# Środowiska wirtualne uv/python
+.venv/
+venv/
+env/
+
+# Zignoruj dane
+data/
+
+# Pliki systemowe
+.DS_Store
+Thumbs.db
+
+# Pliki tymczasowe Pythona
+__pycache__/
+*.pyc
+.pytest_cache/
