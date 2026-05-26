@@ -1,0 +1,154 @@
+---
+title: "Volatility Forecasting with GARCH Models"
+subtitle: "Netflix (NFLX) Stock Returns"
+format:
+  html:
+    toc: true
+    embed-resources: true
+    theme: cosmo
+execute:
+  warning: false
+  echo: true
+jupyter: python3
+---
+
+## Introduction
+
+This report presents a reproducible pipeline for modelling and forecasting the
+volatility of Netflix (NFLX) daily stock returns.  Three GARCH-family
+specifications are compared — GARCH(1,1), GJR-GARCH and EGARCH — and the best
+model (by AIC) is used for rolling out-of-sample variance forecasting.
+
+```{python}
+import sys
+import warnings
+
+sys.path.insert(0, "src")
+warnings.filterwarnings("ignore")
+
+from volatility_forecasting.data import DataLoader
+from volatility_forecasting.models import VolatilityModel, compare_models
+from volatility_forecasting.forecasting import RollingForecaster
+from volatility_forecasting.plots import (
+    plot_returns,
+    plot_conditional_volatility,
+    plot_forecast_vs_realized,
+    plot_residuals_diagnostics,
+    plot_model_comparison,
+)
+```
+
+## Data
+
+Daily prices are downloaded from Yahoo Finance.  Log returns are computed as
+$r_t = \ln(P_t / P_{t-1})$.
+
+```{python}
+loader = DataLoader(ticker="NFLX")
+df = loader.get_processed_data()
+
+print(f"Period       : {df['date'].min().date()} to {df['date'].max().date()}")
+print(f"Observations : {len(df)}")
+df[["date", "close", "log_return"]].describe()
+```
+
+```{python}
+#| fig-cap: "Daily log returns exhibit pronounced volatility clustering."
+plot_returns(df["date"], df["log_return"])
+```
+
+## Model Fitting
+
+Returns are scaled to percentage points (×100) before estimation.
+
+```{python}
+returns = df["log_return"] * 100
+
+garch = VolatilityModel(returns, "GARCH")
+garch.fit()
+print(garch.result.summary().tables[1])
+```
+
+```{python}
+gjr = VolatilityModel(returns, "GJR-GARCH")
+gjr.fit()
+print(gjr.result.summary().tables[1])
+```
+
+```{python}
+egarch = VolatilityModel(returns, "EGARCH")
+egarch.fit()
+print(egarch.result.summary().tables[1])
+```
+
+## Model Comparison
+
+```{python}
+comparison = compare_models(returns)
+comparison
+```
+
+```{python}
+#| fig-cap: "Information-criteria comparison across the three specifications."
+plot_model_comparison(comparison)
+```
+
+## Diagnostics
+
+The Ljung-Box test checks whether standardised residuals still contain
+autocorrelation.  A p-value above 0.05 indicates an adequate fit.
+
+```{python}
+best_name = comparison.index[0]
+models_dict = {"GARCH": garch, "GJR-GARCH": gjr, "EGARCH": egarch}
+best = models_dict[best_name]
+
+print(f"Best model by AIC: {best_name}\n")
+best.ljung_box_test()
+```
+
+```{python}
+#| fig-cap: "Distribution of standardised residuals versus the standard normal."
+plot_residuals_diagnostics(best.get_standardized_residuals(), best_name)
+```
+
+## Conditional Volatility
+
+```{python}
+#| fig-cap: "Estimated conditional volatility over the full sample period."
+plot_conditional_volatility(
+    df["date"], best.result.conditional_volatility, best_name
+)
+```
+
+## Rolling Forecast
+
+A rolling window of 500 observations is re-estimated every 10 trading days
+to produce one-step-ahead variance forecasts.
+
+```{python}
+forecaster = RollingForecaster(returns, model_type=best_name, window=500)
+fc = forecaster.run(step=10)
+print(f"Forecast points: {len(fc)}")
+```
+
+```{python}
+#| fig-cap: "One-step-ahead variance forecast versus realised squared returns."
+fc_dates = df["date"].iloc[fc["t"].values].values
+plot_forecast_vs_realized(fc, dates=fc_dates, model_name=best_name)
+```
+
+```{python}
+print(f"MSE : {RollingForecaster.mse(fc):.4f}")
+print(f"MAE : {RollingForecaster.mae(fc):.4f}")
+```
+
+## Conclusions
+
+The analysis confirms that NFLX daily returns display strong volatility
+clustering.  Among the three GARCH-family models tested, the specification
+with the lowest AIC provides the best in-sample fit, and the Ljung-Box test
+shows no significant remaining autocorrelation in standardised residuals.
+The rolling out-of-sample forecast captures the time-varying nature of
+volatility, though point accuracy is inherently limited for daily equity
+returns.
