@@ -2,7 +2,7 @@
 Volatility models module.
 
 Contains the VolatilityModel class for fitting GARCH-family models
-and running basic diagnostics.
+and running basic diagnostics on log returns produced by DataLoader.
 """
 
 import pandas as pd
@@ -11,12 +11,22 @@ from statsmodels.stats.diagnostic import acorr_ljungbox
 
 
 class VolatilityModel:
-    """Fits a GARCH-type model and provides diagnostic methods.
+    """Fits a GARCH-type model on log returns and provides diagnostic methods.
+
+    Expects a pandas Series of log returns, for example the 'log_return'
+    column produced by DataLoader.get_processed_data().
 
     Supported model types: 'GARCH', 'GJR-GARCH', 'EGARCH'.
 
     Example usage:
-        model = VolatilityModel(returns, model_type='GARCH')
+        from volatility_forecasting.data import DataLoader
+        from volatility_forecasting.models import VolatilityModel
+
+        loader = DataLoader(ticker="NFLX")
+        df = loader.get_processed_data()
+        returns = df["log_return"] * 100  # scale to percentage points
+
+        model = VolatilityModel(returns, model_type="GARCH")
         model.fit()
         print(model.get_aic_bic())
     """
@@ -28,7 +38,7 @@ class VolatilityModel:
         self.result = None  # will be filled after calling fit()
 
     def fit(self):
-        """Fit the model to the return data."""
+        """Fit the model to the return series."""
         if self.model_type == "GARCH":
             model = arch_model(self.returns, vol="GARCH", p=1, o=0, q=1)
 
@@ -79,6 +89,11 @@ def compare_models(returns: pd.Series) -> pd.DataFrame:
     """Fit GARCH, GJR-GARCH and EGARCH on the same data and compare them.
 
     Returns a table sorted by AIC (lower is better).
+
+    Example:
+        df = loader.get_processed_data()
+        returns = df["log_return"] * 100
+        print(compare_models(returns))
     """
     results = []
 
