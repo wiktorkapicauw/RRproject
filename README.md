@@ -7,7 +7,7 @@ using GARCH, GJR-GARCH and EGARCH models.
 
 - Oleg Fyłypczuk
 - Maciej Głowacki
-- **<WPISZ_SWOJE_IMIE>**
+- Wiktor Kapica
 
 ## Quick Start (Docker Hub)
 
