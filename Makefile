@@ -10,9 +10,9 @@ run:
 
 # Format Python code using black and isort
 format:
-	black src main.py
-	isort src main.py
+	.venv/bin/black src main.py
+	.venv/bin/isort src main.py
 
 # Lint Python code using flake8
 lint:
-	flake8 src main.py
+	.venv/bin/flake8 src main.py
