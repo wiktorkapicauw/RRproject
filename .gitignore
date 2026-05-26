@@ -6,6 +6,9 @@ env/
 # Zignoruj dane
 data/
 
+# Wygenerowany raport
+output/
+
 # Pliki systemowe
 .DS_Store
 Thumbs.db
