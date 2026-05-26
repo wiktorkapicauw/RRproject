@@ -6,4 +6,4 @@ services:
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
-    command: quarto render report.qmd --output-dir output
+    command: sh -c "quarto render report.qmd && cp report.html output/"

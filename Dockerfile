@@ -19,10 +19,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY pyproject.toml README.md ./
 
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir .[dev]
+    pip install --no-cache-dir .[dev] && \
+    python -m ipykernel install --name python3
 
 COPY . .
 
 RUN mkdir -p output
 
-CMD ["quarto", "render", "report.qmd", "--output-dir", "output"]
+CMD ["sh", "-c", "quarto render report.qmd && cp report.html output/"]

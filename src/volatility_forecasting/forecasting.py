@@ -45,6 +45,9 @@ class RollingForecaster:
             )
 
         df = pd.DataFrame(rows)
+        df = df[
+            (df["variance_forecast"] > 0.01) & (df["variance_forecast"] < 1e4)
+        ].reset_index(drop=True)
         df["volatility_forecast"] = df["variance_forecast"] ** 0.5
         return df
 
