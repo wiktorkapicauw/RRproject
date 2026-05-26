@@ -14,9 +14,9 @@ using GARCH, GJR-GARCH and EGARCH models.
 Pull the image and generate the report (~3 min):
 
 ```bash
-docker pull <DOCKERHUB_USER>/rrproject:latest
+docker pull wiktorkapicauw/rrproject:latest
 mkdir -p output
-docker run --rm -v "$(pwd)/output:/app/output" <DOCKERHUB_USER>/rrproject:latest
+docker run --rm -v "$(pwd)/output:/app/output" wiktorkapicauw/rrproject:latest
 ```
 
 Open `output/report.html` in a browser.
