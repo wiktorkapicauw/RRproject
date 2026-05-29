@@ -1,4 +1,4 @@
-name: Build and publish Docker image
+name: Build, test and publish Docker image
 
 on:
   push:
@@ -8,15 +8,32 @@ on:
       - "pyproject.toml"
       - "src/**"
       - "report.qmd"
+      - "tests/**"
       - ".github/workflows/docker-publish.yml"
   workflow_dispatch:
 
 jobs:
-  build-and-push:
+  build-test-publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Build image (load locally, no push yet)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          push: false
+          tags: rrproject:test
+
+      - name: Generate the report inside the container
+        run: |
+          mkdir -p output
+          docker run --rm -v "${{ github.workspace }}/output:/app/output" rrproject:test
+
+      - name: Verify report is complete and has no duplicate plots
+        run: python3 tests/verify_report.py
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -24,9 +41,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/rrproject:latest
+      - name: Push the tested image to Docker Hub
+        run: |
+          docker tag rrproject:test ${{ secrets.DOCKERHUB_USERNAME }}/rrproject:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/rrproject:latest
