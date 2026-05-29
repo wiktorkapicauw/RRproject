@@ -2,10 +2,8 @@ services:
   app:
     build: .
     volumes:
-      - .:/app
+      - ./output:/app/output
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
-    stdin_open: true
-    tty: true
-    command: python main.py
+    command: sh -c "quarto render report.qmd && cp report.html output/"
