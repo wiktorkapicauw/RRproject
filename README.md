@@ -11,7 +11,10 @@ using GARCH, GJR-GARCH and EGARCH models.
 
 ## Quick Start (Docker Hub)
 
-Pull the image and generate the report (~3 min):
+Pull the pre-built image and generate the report (~3 min). The report is
+written to a local `output/` folder.
+
+**macOS / Linux:**
 
 ```bash
 docker pull wiktorkapicauw/rrproject:latest
@@ -19,7 +22,15 @@ mkdir -p output
 docker run --rm -v "$(pwd)/output:/app/output" wiktorkapicauw/rrproject:latest
 ```
 
-Open `output/report.html` in a browser.
+**Windows (PowerShell):**
+
+```powershell
+docker pull wiktorkapicauw/rrproject:latest
+mkdir output -Force
+docker run --rm -v "${PWD}/output:/app/output" wiktorkapicauw/rrproject:latest
+```
+
+Then open `output/report.html` in a browser.
 
 ## Build Locally
 
