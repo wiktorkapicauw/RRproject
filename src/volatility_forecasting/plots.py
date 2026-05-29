@@ -13,6 +13,7 @@ def plot_returns(dates, returns):
     ax.set_title("NFLX Daily Log Returns")
     ax.set_ylabel("Log return")
     fig.tight_layout()
+    plt.close(fig)
     return fig
 
 
@@ -23,6 +24,7 @@ def plot_conditional_volatility(dates, volatility, model_name="GARCH"):
     ax.set_title(f"Conditional Volatility — {model_name}")
     ax.set_ylabel("σ (%)")
     fig.tight_layout()
+    plt.close(fig)
     return fig
 
 
@@ -49,6 +51,7 @@ def plot_forecast_vs_realized(fc_df, dates=None, model_name="GARCH"):
     ax.set_ylabel("Variance")
     ax.legend()
     fig.tight_layout()
+    plt.close(fig)
     return fig
 
 
@@ -66,6 +69,7 @@ def plot_residuals_diagnostics(residuals, model_name="GARCH"):
     stats.probplot(clean, dist="norm", plot=axes[1])
     axes[1].set_title("Q-Q Plot")
     fig.tight_layout()
+    plt.close(fig)
     return fig
 
 
@@ -84,4 +88,5 @@ def plot_model_comparison(comparison_df):
     for ax in axes:
         ax.tick_params(axis="x", rotation=0)
     fig.tight_layout()
+    plt.close(fig)
     return fig
